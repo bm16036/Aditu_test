@@ -1,7 +1,5 @@
-# Etapa 1: build
-FROM openjdk:17-jdk-slim AS builder
+FROM openjdk:21-jdk-slim
 
-# Instalar curl y Node.js (Vaadin front-end build)
 RUN apt-get update && \
     apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
@@ -10,23 +8,14 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Copiar código y dar permisos al wrapper
 COPY . .
-RUN chmod +x mvnw
 
-# Compilar en modo production (ajusta el perfil si se llama distinto)
-RUN ./mvnw clean package -Pproduction -DskipTests
+RUN chmod +x ./mvnw
 
-# Etapa 2: runtime
-FROM openjdk:17-jdk-slim
+RUN ["./mvnw", "clean", "package", "-Pproduction", "-DskipTests"]
 
-WORKDIR /app
+RUN mv /app/target/aditu-test-0.0.1-SNAPSHOT.jar /app/app.jar
 
-# Solo copiamos el JAR empaquetado
-COPY --from=builder /app/target/*.jar app.jar
+EXPOSE 9000
 
-# Exponer el puerto 8080 y fallback a $PORT (que Render define)
-EXPOSE 8080
-
-# Arranque de la aplicación; adapta el server.port con $PORT cuando esté definido
-CMD ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]
+CMD ["java", "-jar", "/app/app.jar"]
