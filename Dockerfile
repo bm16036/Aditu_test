@@ -1,29 +1,32 @@
-# Stage 1: Build the application
-FROM eclipse-temurin:21-jdk AS builder
+# Etapa 1: build
+FROM openjdk:17-jdk-slim AS builder
 
-# Set the working directory
+# Instalar curl y Node.js (Vaadin front-end build)
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy the application code
+# Copiar código y dar permisos al wrapper
 COPY . .
-
-# Given permissions to mvnw
 RUN chmod +x mvnw
 
-# Build the application (requires Maven or Gradle)
-RUN ./mvnw clean package -DskipTests
+# Compilar en modo production (ajusta el perfil si se llama distinto)
+RUN ./mvnw clean package -Pproduction -DskipTests
 
-# Stage 2: Run the application
-FROM eclipse-temurin:21-jre
+# Etapa 2: runtime
+FROM openjdk:17-jdk-slim
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the JAR file from the builder stage
+# Solo copiamos el JAR empaquetado
 COPY --from=builder /app/target/*.jar app.jar
 
-# Expose the port the app will run on
+# Exponer el puerto 8080 y fallback a $PORT (que Render define)
 EXPOSE 8080
 
-# Command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Arranque de la aplicación; adapta el server.port con $PORT cuando esté definido
+CMD ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]
