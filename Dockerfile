@@ -1,21 +1,29 @@
-# Dockerfile
-FROM eclipse-temurin:21-jdk as builder
+# Stage 1: Build the application
+FROM eclipse-temurin:21-jdk AS builder
 
+# Set the working directory
 WORKDIR /app
 
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline
+# Copy the application code
+COPY . .
 
-COPY src ./src
-RUN ./mvnw com.vaadin:vaadin-maven-plugin:prepare-frontend
+# Given permissions to mvnw
+RUN chmod +x mvnw
+
+# Build the application (requires Maven or Gradle)
 RUN ./mvnw clean package -DskipTests
 
-# Runtime
-FROM eclipse-temurin:21-jdk
+# Stage 2: Run the application
+FROM eclipse-temurin:21-jre
+
+# Set the working directory
 WORKDIR /app
 
+# Copy the JAR file from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
+# Expose the port the app will run on
 EXPOSE 8080
+
+# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
