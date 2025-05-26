@@ -128,19 +128,6 @@
 							</execution>
 						</executions>
 					</plugin>
-					<plugin>
-      					<groupId>com.vaadin</groupId>
-      					<artifactId>vaadin-maven-plugin</artifactId>
-      					<version>24.7.0</version> <!-- o la versión que uses -->
-      					<executions>
-        					<execution>
-          						<goals>
-           							<goal>prepare-frontend</goal>
-            						<goal>build-frontend</goal>
-          						</goals>
-        					</execution>
-      					</executions>
-    				</plugin>
 				</plugins>
 			</build>
 		</profile>
