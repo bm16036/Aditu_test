@@ -14,8 +14,9 @@ RUN chmod +x ./mvnw
 
 RUN ["./mvnw", "clean", "package", "-Pproduction", "-DskipTests"]
 
-RUN mv /app/target/aditu-test-0.0.1-SNAPSHOT.jar /app/app.jar
 
-EXPOSE 9000
+RUN mv /app/target/aditu-0.0.1-SNAPSHOT.jar /app/app.jar
+
+EXPOSE 8080
 
 CMD ["java", "-jar", "/app/app.jar"]
